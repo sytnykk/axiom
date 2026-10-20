@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Axiom Components</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: fixed sidebar + top bar; four views (Dashboard, Analytics, Customers, Settings) switched from the menu.
+   Every value below is an Axiom Figma variable, read through Figma MCP. Axiom is a dark-only kit, so the page commits to one dark theme. */
+:root {
+  color-scheme: dark;
+  /* color — Axiom variables */
+  --bg-100: #0a0a0a;          /* bg/100  page */
+  --bg-200: #111111;          /* bg/200  surfaces */
+  --bg-300: #1f1f1f;          /* bg/300  inputs, empty cells, active nav, table header */
+  --bg-400: #262626;          /* bg/400  muted bars, toast */
+  --accent-secondary: #1f1f1f; /* accent/secondary  secondary buttons, inputs */
+  --text-primary: #f5f5f5;    /* text/primary */
+  --text-secondary: #a3a3a3;  /* text/secondary */
+  --icon-tertiary: #595959;   /* icon/tertiary */
+  --accent: #c8ff62;          /* accent/primary */
+  --accent-50: rgba(200, 255, 98, 0.5);
+  --on-accent: #0a0a0a;
+  --success: #c8ff62;         /* status/success/success */
+  --success-subtle: rgba(200, 255, 98, 0.05); /* status/subtle/success */
+  --error: #f10e27;           /* status/error/error */
+  --error-subtle: rgba(255, 49, 70, 0.1);     /* status/subtle/error */
+  --pending: #f59e0b;         /* used raw in Figma; no text variable exists */
+  --pending-subtle: rgba(245, 158, 11, 0.1);  /* status/subtle/pending */
+  --processing-subtle: #1f1f1f;               /* status/subtle/processing */
+  --border-primary: rgba(255, 255, 255, 0.06);  /* border/primary */
+  --border-elevated: rgba(255, 255, 255, 0.15); /* border/elevated */
+  --divider: rgba(255, 255, 255, 0.1);          /* raw white at 10% in Figma, not a variable */
+  /* type — Axiom text styles */
+  --font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* spacing & radius — 4px base */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-6: 24px; --s-8: 32px;
+  --r-input: 4px; --r-small: 6px; --r-default: 8px;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+h1[tabindex="-1"]:focus { outline: none; }
+html, body { background: var(--bg-100); }
+body { margin: 0; font-family: var(--font); color: var(--text-primary); font-size: 14px; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg.i { width: 20px; height: 20px; flex: none; }
+svg.i-sm { width: 16px; height: 16px; flex: none; }
+svg.i-xs { width: 12px; height: 12px; flex: none; }
+
+.app { display: grid; grid-template-columns: 256px minmax(0, 1fr); min-height: 100vh; }
+
+/* sidebar */
+.sidebar { background: var(--bg-200); border-right: 1px solid var(--border-primary); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px; padding-block: 0 var(--s-6); }
+.brand { height: 64px; display: flex; align-items: center; padding-left: 12px; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+.nav { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); }
+.nav a { display: flex; align-items: center; gap: var(--s-3); height: 40px; padding-inline: 12px; border-radius: var(--r-default); color: var(--text-primary); text-decoration: none; font-weight: 500; letter-spacing: -0.01em; }
+.nav a:hover { background: color-mix(in srgb, var(--bg-300) 60%, transparent); }
+.nav a[aria-current="page"] { background: var(--bg-300); color: var(--accent); }
+
+/* top bar */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-6); height: 64px; padding-left: var(--s-8); padding-right: max(var(--s-8), env(safe-area-inset-right, 0px)); background: var(--bg-200); border-bottom: 1px solid var(--border-primary); }
+.search { flex: 0 1 576px; min-width: 0; display: flex; align-items: center; gap: 10px; height: 38px; padding-inline: 12px; background: var(--bg-300); border: 1px solid var(--border-elevated); border-radius: var(--r-default); color: var(--text-secondary); }
+.search.small { flex: 0 1 320px; height: 32px; }
+.search input { flex: 1; min-width: 0; background: none; border: 0; color: var(--text-primary); letter-spacing: -0.01em; }
+.search input::placeholder { color: var(--text-secondary); }
+.search input:focus { outline: none; }
+.search:focus-within { border-color: var(--accent); }
+.actions { display: flex; align-items: center; gap: 14px; flex: none; }
+.bell { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; border-radius: var(--r-default); cursor: pointer; }
+.bell:hover { background: var(--bg-300); }
+.bell::after { content: ""; position: absolute; top: 6px; left: 22px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.vdivider { width: 1px; height: 25px; background: var(--divider); }
+.user { display: flex; align-items: center; gap: var(--s-3); }
+.user-text { text-align: right; line-height: 1.25; }
+.user-name { font-weight: 500; letter-spacing: -0.01em; }
+.user-role { font-size: 12px; color: var(--text-secondary); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; background: linear-gradient(135deg, #c8ff62 0%, #0640d4 100%); color: var(--on-accent); font-weight: 500; font-size: 14px; }
+.avatar.lg { width: 60px; height: 60px; font-size: 20px; }
+.avatar.plain { background: var(--bg-400); color: var(--text-primary); font-size: 12px; }
+
+/* content */
+.content { padding-block: var(--s-8) 48px; padding-left: var(--s-8); padding-right: max(var(--s-8), env(safe-area-inset-right, 0px)); min-width: 0; }
+.view { display: flex; flex-direction: column; gap: var(--s-6); min-width: 0; }
+.page-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
+h1 { margin: 0; font-size: 24px; font-weight: 500; }
+.lede { margin: 4px 0 0; color: var(--text-secondary); letter-spacing: -0.01em; }
+.card { background: var(--bg-200); border: 1px solid var(--border-primary); border-radius: var(--r-default); padding: var(--s-6); min-width: 0; }
+.card-title { margin: 0; font-size: 18px; font-weight: 500; }
+.card-sub { margin: 4px 0 0; color: var(--text-secondary); letter-spacing: -0.01em; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding-inline: 12px; border-radius: var(--r-small); border: 1px solid var(--border-elevated); background: var(--accent-secondary); color: var(--text-primary); font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; cursor: pointer; }
+.btn:hover { background: var(--bg-400); }
+.btn.primary { height: 36px; border: 0; border-radius: var(--r-default); background: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
+.btn.danger { border: 0; background: var(--error-subtle); color: var(--error); }
+.btn.danger:hover { background: color-mix(in srgb, var(--error) 18%, transparent); }
+.link-btn { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; }
+.link-btn:hover { text-decoration: underline; }
+
+/* KPI tiles */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-6); }
+.kpi { display: flex; flex-direction: column; gap: var(--s-4); }
+.kpi-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--s-2); }
+.kpi-label { font-size: 14px; line-height: 20px; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-secondary); }
+.icon-badge { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: var(--r-default); background: var(--success-subtle); color: var(--accent); }
+.kpi-value { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.75px; font-variant-numeric: tabular-nums; }
+.kpi-foot { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-2); font-size: 12px; color: var(--text-secondary); }
+.trend { display: inline-flex; align-items: center; gap: var(--s-1); padding: 2px var(--s-2); border-radius: 999px; font-weight: 500; line-height: 16px; }
+.trend.up { background: var(--success-subtle); color: var(--success); }
+.trend.down { background: var(--error-subtle); color: var(--error); }
+.kpi-rule { height: 1px; background: linear-gradient(90deg, var(--accent) 5%, var(--bg-100) 100%); }
+
+.row { display: grid; grid-template-columns: minmax(0, 382fr) minmax(0, 810fr); gap: var(--s-6); }
+
+/* heatmap */
+.legend { display: flex; flex-wrap: wrap; gap: var(--s-4); margin-top: var(--s-4); font-size: 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.heat { display: grid; grid-template-columns: 40px repeat(7, minmax(0, 38px)); gap: var(--s-1); margin-top: var(--s-6); justify-content: start; font-size: 12px; color: var(--text-secondary); }
+.heat .hour { align-self: center; text-align: right; padding-right: 6px; white-space: nowrap; }
+.heat .day { text-align: center; padding-top: 6px; }
+.cell { height: 32px; border-radius: var(--r-small); background: var(--bg-300); }
+/* levels: 1 = 200+, 2 = 500+, 3 = 1,000+, 4 = 2,000+ */
+.l1, .l2 { background: repeating-linear-gradient(135deg, var(--accent) 0 1.2px, var(--accent-50) 1.2px 3.4px); }
+.l1 { opacity: 0.5; }
+.l3 { background: var(--accent-50); }
+.l4 { background: var(--accent); }
+
+/* charts */
+.chart { position: relative; margin-top: var(--s-4); }
+.chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.chart text { fill: var(--text-secondary); font: 12px var(--font); }
+.bars { height: 300px; }
+.area { height: 314px; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
+.segmented { display: flex; gap: var(--s-2); padding: var(--s-1); background: var(--bg-300); border-radius: var(--r-default); }
+.segmented button { height: 28px; padding-inline: 12px; border: 0; border-radius: var(--r-small); background: none; color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; }
+.segmented button[aria-pressed="true"] { background: var(--bg-200); color: var(--text-primary); box-shadow: 0 1px 1.5px rgba(0,0,0,.1), 0 1px 1px rgba(0,0,0,.1); }
+.tip { position: absolute; pointer-events: none; transform: translate(-50%, calc(-100% - 10px)); background: var(--bg-400); border: 1px solid var(--border-elevated); border-radius: var(--r-small); padding: 6px 10px; font-size: 12px; white-space: nowrap; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.tip small { display: block; color: var(--text-secondary); font-size: 11px; }
+
+/* tables */
+.table-wrap { overflow-x: auto; margin-top: var(--s-6); }
+table { width: 100%; min-width: 720px; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-size: 12px; font-weight: 500; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-secondary); padding: 6px 12px; background: var(--bg-300); white-space: nowrap; }
+th:first-child { border-radius: var(--r-default) 0 0 var(--r-default); }
+th:last-child { border-radius: 0 var(--r-default) var(--r-default) 0; }
+td { padding: 15px 12px; letter-spacing: -0.01em; white-space: nowrap; }
+td.muted { color: var(--text-secondary); }
+td.strong { font-weight: 500; }
+tbody tr:hover td { background: color-mix(in srgb, var(--bg-300) 45%, transparent); }
+.person { display: flex; align-items: center; gap: var(--s-2); }
+td.person-cell { padding-block: 6px; }
+.badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 99px; font-size: 12px; font-weight: 500; }
+.badge.ok { background: var(--success-subtle); color: var(--success); }
+.badge.pending { background: var(--pending-subtle); color: var(--pending); }
+.badge.neutral { background: var(--processing-subtle); color: var(--text-secondary); }
+.badge.bad { background: var(--error-subtle); color: var(--error); }
+.table-foot { display: flex; justify-content: flex-end; align-items: center; gap: 22px; margin: var(--s-4) calc(-1 * var(--s-6)) calc(-1 * var(--s-6)); padding: 12px var(--s-6); border-top: 1px solid var(--border-primary); color: var(--text-secondary); letter-spacing: -0.01em; }
+.pager { display: flex; background: var(--bg-300); border-radius: var(--r-default); overflow: hidden; }
+.pager button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; background: none; cursor: pointer; color: var(--text-primary); }
+.pager button:disabled { color: var(--icon-tertiary); cursor: default; }
+.pager button:not(:disabled):hover { background: var(--bg-400); }
+.empty-row td { text-align: center; color: var(--text-secondary); padding-block: 32px; }
+
+/* customers toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; position: relative; }
+.filter-pop { position: absolute; z-index: 20; top: calc(100% + 6px); min-width: 180px; padding: var(--s-2); background: var(--bg-300); border: 1px solid var(--border-elevated); border-radius: var(--r-default); box-shadow: 0 12px 28px rgba(0,0,0,.45); }
+.filter-pop label { display: flex; align-items: center; gap: var(--s-2); padding: 8px; border-radius: var(--r-small); cursor: pointer; }
+.filter-pop label:hover { background: var(--bg-400); }
+.filter-pop input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+.btn[aria-expanded="true"] { border-color: var(--accent); }
+.count-chip { min-width: 18px; height: 18px; padding-inline: 5px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 11px; display: inline-grid; place-items: center; }
+
+/* settings */
+.settings { width: 100%; max-width: 900px; margin-inline: auto; display: flex; flex-direction: column; gap: 40px; }
+.set-section { display: flex; flex-direction: column; }
+.set-section h2 { margin: 0; padding-bottom: var(--s-4); border-bottom: 1px solid var(--divider); font-size: 18px; font-weight: 500; }
+.set-rows { display: flex; flex-direction: column; gap: var(--s-6); padding-top: var(--s-6); }
+.set-row { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
+.set-row > div:first-child { min-width: 0; }
+.set-title { font-weight: 500; letter-spacing: -0.01em; }
+.set-desc { margin-top: 4px; color: var(--text-secondary); letter-spacing: -0.01em; }
+.profile { display: grid; grid-template-columns: 60px minmax(0, 272px); column-gap: var(--s-6); row-gap: 12px; align-items: start; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { color: var(--text-secondary); letter-spacing: -0.01em; }
+.field input { height: 32px; padding-inline: 12px; border-radius: var(--r-input); border: 1px solid var(--border-elevated); background: var(--accent-secondary); letter-spacing: -0.01em; }
+.field input:focus { outline: none; border-color: var(--accent); }
+.switch { position: relative; width: 52px; height: 32px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.switch span { position: absolute; inset: 0; border-radius: 99px; background: var(--bg-400); border: 1px solid var(--border-elevated); pointer-events: none; }
+.switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg-100); }
+.switch input:checked + span { background: var(--accent); border-color: var(--accent); }
+.switch input:checked + span::after { left: 23px; }
+.switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* toast */
+.toast { position: fixed; z-index: 60; right: max(24px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px)); max-width: calc(100vw - 32px);
+         display: flex; align-items: center; gap: 12px; padding: 10px 13px; background: var(--bg-400); border: 1px solid var(--border-elevated); border-radius: 7px; box-shadow: 2px 4px 12px rgba(0,0,0,.2); font-weight: 500; letter-spacing: -0.01em; }
+.toast i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; box-shadow: 0 0 0 4px var(--success-subtle); }
+.toast .sep { width: 1px; height: 18px; background: var(--border-elevated); flex: none; }
+.toast button { border: 0; background: none; padding: 0; cursor: pointer; font-weight: 500; }
+
+/* top-menu → burger */
+.menu-btn { display: none; width: 36px; height: 36px; margin-left: auto; place-items: center; border: 0; border-radius: var(--r-default); background: none; cursor: pointer; }
+.menu-btn:hover, .menu-btn[aria-expanded="true"] { background: var(--bg-300); }
+.menu-btn svg { width: 20px; height: 20px; }
+.menu-btn .when-open, .menu-btn[aria-expanded="true"] .when-closed { display: none; }
+.menu-btn[aria-expanded="true"] .when-open { display: block; }
+
+@media (max-width: 1180px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  /* sidebar becomes a top menu: brand on its own row, the items in a row below it */
+  .sidebar { position: relative; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; border-right: 0; border-bottom: 1px solid var(--border-primary);
+             padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 var(--s-3); }
+  .brand { height: 56px; padding-left: 0; flex: 1; }
+  .nav { flex-direction: row; margin-top: 0; flex: 1 0 100%; min-width: 0; overflow: hidden; }
+  .nav a { flex: none; }
+  .sidebar.collapsed { padding-bottom: 0; }
+  /* items no longer fit in the row: burger + dropdown */
+  .sidebar.collapsed .menu-btn { display: grid; }
+  .sidebar.collapsed .nav { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: var(--s-1);
+             padding-block: var(--s-2) var(--s-3); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+             background: var(--bg-200); border-bottom: 1px solid var(--border-primary); box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45); }
+  .sidebar.collapsed.open .nav { display: flex; }
+  .topbar, .content { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .user-text, .vdivider { display: none; }
+}
+@media (max-width: 520px) {
+  .kpis { grid-template-columns: minmax(0, 1fr); }
+  .heat { grid-template-columns: 40px repeat(7, minmax(0, 1fr)); }
+  .bars, .area { height: 240px; }
+  .card { padding: var(--s-4); }
+  .table-foot { margin-inline: calc(-1 * var(--s-4)); margin-bottom: calc(-1 * var(--s-4)); padding-inline: var(--s-4); }
+  .search.small { flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nav a, .segmented button, .bell, .btn, .pager button { transition: background-color .15s ease, color .15s ease; }
+  .switch span, .switch span::after { transition: left .18s ease, background-color .18s ease; }
+}
+
+
+/* ---------- gallery layout (only on this page) ---------- */
+.gallery { max-width: 1120px; margin: 0 auto; padding-top: 56px; padding-bottom: 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.g-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s-6); flex-wrap: wrap; }
+.g-brand { font-size: 14px; font-weight: 600; color: var(--accent); letter-spacing: 0.7px; text-transform: uppercase; margin: 0 0 12px; }
+.g-head h1 { font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; }
+.g-head .lede { max-width: 620px; margin-top: 12px; font-size: 16px; line-height: 1.5; }
+.g-stats { display: flex; gap: var(--s-8); margin-top: var(--s-8); flex-wrap: wrap; }
+.g-stat b { display: block; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.g-stat span { font-size: 12px; color: var(--text-secondary); letter-spacing: 0.7px; text-transform: uppercase; }
+.g-index { position: sticky; top: 0; z-index: 10; display: flex; gap: var(--s-2); overflow-x: auto; margin-top: 40px; padding: 12px 0; background: var(--bg-100); border-bottom: 1px solid var(--border-primary); scrollbar-width: none; }
+.g-index a { flex: none; height: 30px; display: inline-flex; align-items: center; padding-inline: 12px; border-radius: 99px; color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; }
+.g-index a:hover { color: var(--text-primary); background: var(--bg-200); }
+.g-index a.on { color: var(--accent); background: var(--bg-300); }
+.g-section { padding-top: 64px; scroll-margin-top: 56px; }
+.g-section > h2 { margin: 0; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; }
+.g-section > p { margin: 6px 0 24px; max-width: 680px; color: var(--text-secondary); line-height: 1.5; }
+
+.spec { border: 1px solid var(--border-primary); border-radius: var(--r-default); overflow: hidden; margin-bottom: var(--s-4); background: var(--bg-200); }
+.spec-title { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-4); padding: 14px var(--s-6); border-bottom: 1px solid var(--border-primary); }
+.spec-title h3 { margin: 0; font-size: 15px; font-weight: 500; }
+.spec-title span { font-size: 12px; color: var(--text-secondary); }
+.stage { display: flex; flex-wrap: wrap; gap: var(--s-8); align-items: flex-start; padding: var(--s-8) var(--s-6); background: var(--bg-100); }
+.stage.on-surface { background: var(--bg-200); }
+.state { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; min-width: 0; }
+.state-label { font-size: 12px; color: var(--text-secondary); }
+.spec details { border-top: 1px solid var(--border-primary); }
+.spec summary { display: flex; align-items: center; gap: var(--s-2); padding: 10px var(--s-6); font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; list-style: none; }
+.spec summary::-webkit-details-marker { display: none; }
+.spec summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
+.spec details[open] summary::before { transform: rotate(45deg); }
+.spec summary:hover { color: var(--text-primary); }
+.code-box { position: relative; }
+.code-box pre { margin: 0; padding: var(--s-4) var(--s-6); max-height: 360px; overflow: auto; background: var(--bg-100); border-top: 1px solid var(--border-primary); font: 12px/1.65 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: var(--text-secondary); tab-size: 2; }
+.code-box .copy { position: absolute; top: 10px; right: 12px; }
+
+/* forced states, so hover and focus can be shown side by side */
+.btn.is-hover { background: var(--bg-400); }
+.btn.primary.is-hover { background: color-mix(in srgb, var(--accent) 88%, white); }
+.btn.danger.is-hover { background: color-mix(in srgb, var(--error) 18%, transparent); }
+.is-focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field input.is-focus, .search.is-focus { outline: none; border-color: var(--accent); }
+.nav a.is-hover { background: color-mix(in srgb, var(--bg-300) 60%, transparent); }
+.link-btn.is-hover { text-decoration: underline; }
+.stage .search { flex: none; }
+.stage .toast { position: static; max-width: 100%; }
+.stage .tip { position: static; transform: none; }
+
+/* tokens */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: var(--s-4); }
+.swatch { border: 1px solid var(--border-primary); border-radius: var(--r-default); overflow: hidden; background: var(--bg-200); }
+.swatch-chip { height: 72px; border-bottom: 1px solid var(--border-primary); background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%), linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%); background-size: 12px 12px; background-position: 0 0, 6px 6px; background-color: #0e0e0e; position: relative; }
+.swatch-chip i { position: absolute; inset: 0; }
+.swatch-meta { padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.swatch-meta b { font-weight: 500; font-size: 13px; }
+.swatch-meta code { font: 12px ui-monospace, Menlo, Consolas, monospace; color: var(--text-secondary); overflow-wrap: anywhere; }
+.swatch-meta small { font-size: 11px; color: var(--pending); }
+.group-label { margin: var(--s-6) 0 var(--s-3); font-size: 12px; color: var(--text-secondary); letter-spacing: 0.7px; text-transform: uppercase; }
+.group-label:first-of-type { margin-top: 0; }
+.type-row { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: var(--s-6); align-items: baseline; padding: 18px var(--s-6); border-top: 1px solid var(--border-primary); }
+.type-row:first-child { border-top: 0; }
+.type-row code { font: 12px ui-monospace, Menlo, Consolas, monospace; color: var(--text-secondary); }
+.scale { display: flex; flex-direction: column; gap: 14px; }
+.scale-row { display: grid; grid-template-columns: 72px 64px minmax(0, 1fr); gap: var(--s-4); align-items: center; font-size: 12px; color: var(--text-secondary); }
+.scale-row code { font: 12px ui-monospace, Menlo, Consolas, monospace; color: var(--text-primary); }
+.scale-bar { height: 12px; border-radius: 2px; background: var(--accent); }
+.radius-box { width: 72px; height: 72px; background: var(--bg-300); border: 1px solid var(--border-elevated); }
+.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: var(--s-2); width: 100%; }
+.icon-tile { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 8px 14px; border-radius: var(--r-default); background: var(--bg-200); border: 1px solid var(--border-primary); font-size: 12px; color: var(--text-secondary); }
+.icon-tile svg { width: 24px; height: 24px; color: var(--text-primary); }
+.heat-demo { display: flex; gap: var(--s-4); flex-wrap: wrap; }
+.heat-demo .cell { width: 38px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--s-4); }
+.note { padding: var(--s-6); border-radius: var(--r-default); background: var(--bg-200); border: 1px solid var(--border-primary); }
+.note h3 { margin: 0 0 6px; font-size: 15px; font-weight: 500; }
+.note p { margin: 0; color: var(--text-secondary); line-height: 1.5; }
+.note .badge { margin-bottom: 12px; }
+.g-foot { margin-top: 80px; padding-top: var(--s-6); border-top: 1px solid var(--border-primary); color: var(--text-secondary); font-size: 13px; display: flex; justify-content: space-between; gap: var(--s-4); flex-wrap: wrap; }
+.g-foot a, .g-head a.btn { text-decoration: none; }
+@media (max-width: 640px) {
+  .g-head h1 { font-size: 32px; }
+  .type-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .stage { padding: var(--s-6) var(--s-4); gap: var(--s-6); }
+  .spec-title, .spec summary, .code-box pre { padding-inline: var(--s-4); }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+  <symbol id="users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+  <symbol id="settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+  <symbol id="dollar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+  <symbol id="cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.05 2.05 1.099-.028a1 1 0 0 1 1.008.815l2.69 14.347A1 1 0 0 0 7.83 18H18"/><path d="M4.563 5h16.435a1 1 0 0 1 .981 1.204l-1.026 6.226A2 2 0 0 1 18.962 14H6.25"/><circle cx="18" cy="20" r="2"/><circle cx="8" cy="20" r="2"/></symbol>
+  <symbol id="funnel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z"/></symbol>
+  <symbol id="upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="prev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="next" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></symbol>
+  <symbol id="menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/></symbol>
+</svg>
+
+<div class="gallery">
+  <header class="g-head">
+    <div>
+      <p class="g-brand">Axiom UI kit</p>
+      <h1>Components in code</h1>
+      <p class="lede">The Axiom Figma kit, built as working HTML and CSS through Figma MCP. Colours, spacing and radii come straight from the Figma variables, and every component below is the same code the dashboard prototype runs on.</p>
+      <div class="g-stats">
+        <div class="g-stat"><b id="stat-tokens">0</b><span>Colour tokens</span></div>
+        <div class="g-stat"><b id="stat-comps">0</b><span>Components</span></div>
+        <div class="g-stat"><b>4</b><span>Prototype screens</span></div>
+      </div>
+    </div>
+    <a class="btn primary" href="./">Open the prototype</a>
+  </header>
+
+  <nav class="g-index" id="g-index" aria-label="Sections">
+    <a href="#colors">Colours</a><a href="#type">Type</a><a href="#spacing">Spacing</a><a href="#buttons">Buttons</a><a href="#inputs">Inputs</a><a href="#status">Status</a><a href="#controls">Controls</a><a href="#navigation">Navigation</a><a href="#data">Data display</a><a href="#feedback">Feedback</a><a href="#icons">Icons</a><a href="#notes">Build notes</a>
+  </nav>
+
+  <!-- ============ Colours ============ -->
+  <section class="g-section" id="colors">
+    <h2>Colours</h2>
+    <p>Each swatch is a CSS custom property named after its Figma variable. The values shown are read live from the stylesheet, so this page can't drift from the code.</p>
+    <div id="swatches"></div>
+  </section>
+
+  <!-- ============ Type ============ -->
+  <section class="g-section" id="type">
+    <h2>Typography</h2>
+    <p>Geist throughout. Four sizes do almost all the work; uppercase with 0.7px tracking marks labels.</p>
+    <div class="spec" data-skip-count>
+      <div class="type-row"><code>Display · 30/36 · 600</code><div style="font-size:30px;line-height:36px;font-weight:600;letter-spacing:-0.75px">$45,231</div></div>
+      <div class="type-row"><code>Page title · 24 · 500</code><div style="font-size:24px;font-weight:500">Dashboard</div></div>
+      <div class="type-row"><code>Card title · 18 · 500</code><div style="font-size:18px;font-weight:500">Revenue Overview</div></div>
+      <div class="type-row"><code>Body · 14 · 400</code><div style="letter-spacing:-0.01em">Welcome back, here's what's happening with your business today.</div></div>
+      <div class="type-row"><code>Label · 14 · caps 0.7px</code><div class="kpi-label">Total revenue</div></div>
+      <div class="type-row"><code>Caption · 12 · 400</code><div style="font-size:12px;color:var(--text-secondary)">vs last month</div></div>
+    </div>
+  </section>
+
+  <!-- ============ Spacing ============ -->
+  <section class="g-section" id="spacing">
+    <h2>Spacing and radius</h2>
+    <p>A 4px base. Cards use 24px padding and 24px gaps; controls sit on 8px.</p>
+    <div class="spec" data-skip-count>
+      <div class="stage on-surface" style="gap:64px">
+        <div class="scale" id="scale"></div>
+        <div style="display:flex;gap:var(--s-6);flex-wrap:wrap">
+          <div class="state"><div class="radius-box" style="border-radius:var(--r-input)"></div><span class="state-label">--r-input · 4px</span></div>
+          <div class="state"><div class="radius-box" style="border-radius:var(--r-small)"></div><span class="state-label">--r-small · 6px</span></div>
+          <div class="state"><div class="radius-box" style="border-radius:var(--r-default)"></div><span class="state-label">--r-default · 8px</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Buttons ============ -->
+  <section class="g-section" id="buttons">
+    <h2>Buttons</h2>
+    <p>Three variants plus a text link. Hover and focus are shown forced so the states sit side by side.</p>
+
+    <div class="spec">
+      <div class="spec-title"><h3>Primary</h3><span>accent/primary on bg</span></div>
+      <div class="stage">
+        <div class="state"><span class="state-label">Default</span><button class="btn primary" type="button" data-c><svg class="i-sm"><use href="#plus"/></svg>Add Customer</button></div>
+        <div class="state"><span class="state-label">Hover</span><button class="btn primary is-hover" type="button" data-c><svg class="i-sm"><use href="#plus"/></svg>Add Customer</button></div>
+        <div class="state"><span class="state-label">Focus</span><button class="btn primary is-focus" type="button" data-c><svg class="i-sm"><use href="#plus"/></svg>Add Customer</button></div>
+        <div class="state"><span class="state-label">Text only</span><button class="btn primary" type="button" data-c>Save changes</button></div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-title"><h3>Secondary</h3><span>accent/secondary · border/elevated</span></div>
+      <div class="stage">
+        <div class="state"><span class="state-label">Default</span><button class="btn" type="button" data-c>Change email</button></div>
+        <div class="state"><span class="state-label">Hover</span><button class="btn is-hover" type="button" data-c>Change email</button></div>
+        <div class="state"><span class="state-label">Focus</span><button class="btn is-focus" type="button" data-c>Change email</button></div>
+        <div class="state"><span class="state-label">With icon</span><button class="btn" type="button" data-c><svg class="i-xs"><use href="#funnel"/></svg>Filter</button></div>
+        <div class="state"><span class="state-label">With icon</span><button class="btn" type="button" data-c><svg class="i-xs"><use href="#upload"/></svg>Export</button></div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-title"><h3>Danger and link</h3><span>status/subtle/error · accent/primary</span></div>
+      <div class="stage">
+        <div class="state"><span class="state-label">Danger</span><button class="btn danger" type="button" data-c>Delete account</button></div>
+        <div class="state"><span class="state-label">Danger hover</span><button class="btn danger is-hover" type="button" data-c>Delete account</button></div>
+        <div class="state"><span class="state-label">Link</span><button class="link-btn" type="button" data-c>Add a photo</button></div>
+        <div class="state"><span class="state-label">Link hover</span><button class="link-btn is-hover" type="button" data-c>Add a photo</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Inputs ============ -->
+  <section class="g-section" id="inputs">
+    <h2>Inputs</h2>
+    <p>Fields sit on accent/secondary with an elevated border that turns accent on focus. Type in them; they're real.</p>
+    <div class="spec">
+      <div class="spec-title"><h3>Text field</h3><span>label above, 32px tall</span></div>
+      <div class="stage">
+        <div class="state" style="width:272px"><span class="state-label">Default</span><div class="field" style="width:100%" data-c><label for="f1">Preferred name</label><input id="f1" type="text" placeholder="Your name"></div></div>
+        <div class="state" style="width:272px"><span class="state-label">Focus · filled</span><div class="field" style="width:100%" data-c><label for="f2">Preferred name</label><input id="f2" class="is-focus" type="text" value="Alexander Bartholomew"></div></div>
+      </div>
+    </div>
+    <div class="spec">
+      <div class="spec-title"><h3>Search</h3><span>two sizes: top bar 38px, toolbar 32px</span></div>
+      <div class="stage">
+        <div class="state" style="flex:1 1 320px"><span class="state-label">Large</span><label class="search" style="width:100%" data-c><svg class="i-sm"><use href="#search"/></svg><input type="search" placeholder="Search transactions, customers, reports..."></label></div>
+        <div class="state" style="flex:1 1 240px"><span class="state-label">Small · focus</span><label class="search small is-focus" style="width:100%" data-c><svg class="i-sm"><use href="#search"/></svg><input type="search" placeholder="Search customers..."></label></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Status ============ -->
+  <section class="g-section" id="status">
+    <h2>Status</h2>
+    <p>Badges pair a subtle background token with its strong text colour. Trend chips do the same for up and down.</p>
+    <div class="spec">
+      <div class="spec-title"><h3>Badge</h3><span>status/subtle/*</span></div>
+      <div class="stage on-surface">
+        <div class="state"><span class="state-label">Success</span><span class="badge ok" data-c>Completed</span></div>
+        <div class="state"><span class="state-label">Pending</span><span class="badge pending" data-c>Pending</span></div>
+        <div class="state"><span class="state-label">Processing</span><span class="badge neutral" data-c>Processing</span></div>
+        <div class="state"><span class="state-label">Error</span><span class="badge bad" data-c>Failed</span></div>
+      </div>
+    </div>
+    <div class="spec">
+      <div class="spec-title"><h3>Trend chip and icon badge</h3><span>used in KPI cards</span></div>
+      <div class="stage on-surface">
+        <div class="state"><span class="state-label">Up</span><span class="trend up" data-c><svg class="i-xs"><use href="#up"/></svg>12.5%</span></div>
+        <div class="state"><span class="state-label">Down</span><span class="trend down" data-c><svg class="i-xs"><use href="#down"/></svg>2.4%</span></div>
+        <div class="state"><span class="state-label">Icon badge</span><span class="icon-badge" data-c><svg class="i-sm"><use href="#dollar"/></svg></span></div>
+        <div class="state"><span class="state-label">Avatar</span><div class="avatar" data-c>AB</div></div>
+        <div class="state"><span class="state-label">Avatar · large</span><div class="avatar lg" data-c>AB</div></div>
+        <div class="state"><span class="state-label">Initials</span><span class="avatar plain" data-c>SJ</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Controls ============ -->
+  <section class="g-section" id="controls">
+    <h2>Controls</h2>
+    <p>Both of these work: flip the toggles, switch the periods.</p>
+    <div class="spec">
+      <div class="spec-title"><h3>Toggle</h3><span>52 × 32, accent when on</span></div>
+      <div class="stage on-surface">
+        <div class="state"><span class="state-label">On</span><label class="switch" data-c><input type="checkbox" aria-label="Comments and mentions" checked><span></span></label></div>
+        <div class="state"><span class="state-label">Off</span><label class="switch" data-c><input type="checkbox" aria-label="Email notifications"><span></span></label></div>
+      </div>
+    </div>
+    <div class="spec">
+      <div class="spec-title"><h3>Segmented control</h3><span>bg/300 track, bg/200 selected</span></div>
+      <div class="stage on-surface">
+        <div class="state"><span class="state-label">Chart period</span>
+          <div class="segmented" role="group" aria-label="Period" data-c>
+            <button type="button" aria-pressed="false">7D</button>
+            <button type="button" aria-pressed="false">30D</button>
+            <button type="button" aria-pressed="true">90D</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Navigation ============ -->
+  <section class="g-section" id="navigation">
+    <h2>Navigation</h2>
+    <p>Sidebar items and the table pager. On narrow screens the sidebar becomes a row under the logo, then a burger once the items stop fitting.</p>
+    <div class="spec">
+      <div class="spec-title"><h3>Nav item</h3><span>40px, bg/300 when active</span></div>
+      <div class="stage on-surface">
+        <div class="state" style="width:224px"><span class="state-label">Default</span><nav class="nav" style="margin:0;width:100%" aria-label="Example"><a href="#navigation" data-c><svg class="i"><use href="#users"/></svg>Customers</a></nav></div>
+        <div class="state" style="width:224px"><span class="state-label">Hover</span><nav class="nav" style="margin:0;width:100%" aria-label="Example"><a href="#navigation" class="is-hover" data-c><svg class="i"><use href="#users"/></svg>Customers</a></nav></div>
+        <div class="state" style="width:224px"><span class="state-label">Active</span><nav class="nav" style="margin:0;width:100%" aria-label="Example"><a href="#navigation" aria-current="page" data-c><svg class="i"><use href="#chart"/></svg>Analytics</a></nav></div>
+      </div>
+    </div>
+    <div class="spec">
+      <div class="spec-title"><h3>Pager</h3><span>icon/tertiary when disabled</span></div>
+      <div class="stage on-surface">
+        <div class="state"><span class="state-label">First page</span><div class="pager" data-c><button type="button" disabled aria-label="Previous page"><svg class="i-sm"><use href="#prev"/></svg></button><button type="button" aria-label="Next page"><svg class="i-sm"><use href="#next"/></svg></button></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Data display ============ -->
+  <section class="g-section" id="data">
+    <h2>Data display</h2>
+    <p>The larger pieces: KPI card, table and the heatmap scale.</p>
+    <div class="spec">
+      <div class="spec-title"><h3>KPI card</h3><span>card + label + value + trend + accent rule</span></div>
+      <div class="stage">
+        <article class="card kpi" style="width:300px;max-width:100%" data-c>
+          <div class="kpi-head"><span class="kpi-label">Total revenue</span><span class="icon-badge"><svg class="i-sm"><use href="#dollar"/></svg></span></div>
+          <div><div class="kpi-value">$45,231</div><div class="kpi-foot"><span class="trend up"><svg class="i-xs"><use href="#up"/></svg>12.5%</span>vs last month</div></div>
+          <div class="kpi-rule"></div>
+        </article>
+        <article class="card kpi" style="width:300px;max-width:100%" data-c>
+          <div class="kpi-head"><span class="kpi-label">Conversion rate</span><span class="icon-badge"><svg class="i-sm"><use href="#up"/></svg></span></div>
+          <div><div class="kpi-value">3.24%</div><div class="kpi-foot"><span class="trend down"><svg class="i-xs"><use href="#down"/></svg>2.4%</span>vs last month</div></div>
+          <div class="kpi-rule"></div>
+        </article>
+      </div>
+    </div>
+    <div class="spec">
+      <div class="spec-title"><h3>Table</h3><span>bg/300 header, scrolls sideways on small screens</span></div>
+      <div class="stage on-surface" style="display:block">
+        <div class="table-wrap" style="margin-top:0" data-c>
+          <table>
+            <thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Plan</th><th scope="col">Status</th><th scope="col">MRR</th></tr></thead>
+            <tbody>
+              <tr><td class="person-cell"><div class="person"><span class="avatar plain">SJ</span>Sarah Johnson</div></td><td>sarah@techcorp.com</td><td>Enterprise</td><td><span class="badge ok">Active</span></td><td>$890.00</td></tr>
+              <tr><td class="person-cell"><div class="person"><span class="avatar plain">ER</span>Emily Rodriguez</div></td><td>emily@designco.com</td><td>Starter</td><td><span class="badge neutral">Trial</span></td><td>$49.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="spec">
+      <div class="spec-title"><h3>Heatmap scale</h3><span>empty, then four levels of accent</span></div>
+      <div class="stage on-surface">
+        <div class="heat-demo">
+          <div class="state"><div class="cell" data-c></div><span class="state-label">Under 200</span></div>
+          <div class="state"><div class="cell l1" data-c></div><span class="state-label">200+</span></div>
+          <div class="state"><div class="cell l2" data-c></div><span class="state-label">500+</span></div>
+          <div class="state"><div class="cell l3" data-c></div><span class="state-label">1,000+</span></div>
+          <div class="state"><div class="cell l4" data-c></div><span class="state-label">2,000+</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Feedback ============ -->
+  <section class="g-section" id="feedback">
+    <h2>Feedback</h2>
+    <p>The toast confirms an action; the tooltip reads out a chart value on hover.</p>
+    <div class="spec">
+      <div class="spec-title"><h3>Toast and chart tooltip</h3><span>bg/400 · border/elevated</span></div>
+      <div class="stage">
+        <div class="state"><span class="state-label">Toast</span><div class="toast" role="status" data-c><i></i><span>Preferred name saved.</span><span class="sep"></span><button type="button">Close</button></div></div>
+        <div class="state"><span class="state-label">Tooltip</span><div class="tip" data-c>$6,110<small>Apr</small></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Icons ============ -->
+  <section class="g-section" id="icons">
+    <h2>Icons</h2>
+    <p>Lucide, 2px stroke, drawn in currentColor so they take the colour of their context.</p>
+    <div class="icons" id="icon-grid"></div>
+  </section>
+
+  <!-- ============ Notes ============ -->
+  <section class="g-section" id="notes">
+    <h2>Build notes</h2>
+    <p>Reading the file through MCP shows every value, so the gaps show up too. These are the ones found while building, and how the code handles them.</p>
+    <div class="notes">
+      <div class="note"><span class="badge pending">Raw value</span><h3>Pending text colour</h3><p>The pending badge text is a raw #f59e0b in Figma while its background is a variable. In code it's one token, --pending.</p></div>
+      <div class="note"><span class="badge pending">Raw value</span><h3>Danger button and dividers</h3><p>The delete button uses a one-off hex and Settings dividers are white at 10%. Code maps them to the error-subtle token and a single --divider.</p></div>
+      <div class="note"><span class="badge neutral">Inconsistency</span><h3>Table header background</h3><p>bg/200 on Customers, bg/300 on Dashboard. Code uses bg/300 for every table.</p></div>
+      <div class="note"><span class="badge neutral">Inconsistency</span><h3>Chart y-axis</h3><p>User Growth on Analytics runs 0, 0.1k, 0.5k, 1k, 8k, which flattens the line. Code uses the linear scale from Dashboard.</p></div>
+      <div class="note"><span class="badge bad">Content</span><h3>Row count and copy</h3><p>Customers says "Showing 1–6" over 11 rows, Settings has "DangerZone", and one toast reads "Upload failed! All systems operational". Fixed in code.</p></div>
+    </div>
+  </section>
+
+  <footer class="g-foot"><span>Axiom · Oleksandr Sytnyk · 2026</span><span>Built from Figma with Claude and Figma MCP</span></footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const root = getComputedStyle(document.documentElement);
+  const v = n => root.getPropertyValue(n).trim();
+
+  /* colour swatches, values read live from the stylesheet */
+  const groups = [
+    ["Background", [["--bg-100", "bg/100", "Page"], ["--bg-200", "bg/200", "Surfaces"], ["--bg-300", "bg/300", "Inputs, active nav"], ["--bg-400", "bg/400", "Toast, muted bars"]]],
+    ["Text and icon", [["--text-primary", "text/primary"], ["--text-secondary", "text/secondary"], ["--icon-tertiary", "icon/tertiary", "Disabled icons"]]],
+    ["Accent", [["--accent", "accent/primary"], ["--accent-50", "accent/primary 50%"], ["--accent-secondary", "accent/secondary", "Secondary buttons, fields"]]],
+    ["Status", [["--success", "status/success"], ["--success-subtle", "status/subtle/success"], ["--error", "status/error"], ["--error-subtle", "status/subtle/error"], ["--pending", "no variable in Figma", null, true], ["--pending-subtle", "status/subtle/pending"], ["--processing-subtle", "status/subtle/processing"]]],
+    ["Border", [["--border-primary", "border/primary"], ["--border-elevated", "border/elevated"], ["--divider", "no variable in Figma", null, true]]]
+  ];
+  let tokenCount = 0;
+  $("swatches").innerHTML = groups.map(([label, items]) => `<div class="group-label">${label}</div><div class="swatches">` + items.map(([name, figma, use, raw]) => {
+    tokenCount++;
+    return `<div class="swatch"><div class="swatch-chip"><i style="background:var(${name})"></i></div><div class="swatch-meta"><b>${name}</b><code>${v(name)}</code><code>${figma}</code>${raw ? "<small>Raw value in Figma</small>" : ""}${use ? `<code style="color:var(--text-secondary)">${use}</code>` : ""}</div></div>`;
+  }).join("") + "</div>").join("");
+  $("stat-tokens").textContent = tokenCount;
+
+  /* spacing scale */
+  $("scale").innerHTML = ["--s-1", "--s-2", "--s-3", "--s-4", "--s-6", "--s-8"].map(n =>
+    `<div class="scale-row"><code>${n}</code><span>${v(n)}</span><div class="scale-bar" style="width:${v(n)}"></div></div>`).join("");
+
+  /* icons from the sprite */
+  $("icon-grid").innerHTML = [...document.querySelectorAll("symbol")].map(s =>
+    `<div class="icon-tile"><svg><use href="#${s.id}"/></svg>${s.id}</div>`).join("");
+
+  /* code under each specimen, generated from the live markup */
+  const clean = el => {
+    const c = el.cloneNode(true);
+    [c, ...c.querySelectorAll("*")].forEach(n => {
+      n.removeAttribute("data-c");
+      if (n.classList) { n.classList.remove("is-hover", "is-focus"); if (!n.classList.length) n.removeAttribute("class"); }
+      if (n.getAttribute && n.getAttribute("style") && n === c) n.removeAttribute("style");
+    });
+    let html = c.outerHTML.replace(/<use href="(#[^"]+)"><\/use>/g, '<use href="$1"/>');
+    const lines = html.split("\n");
+    const indent = Math.min(...lines.slice(1).filter(l => l.trim()).map(l => l.match(/^\s*/)[0].length).concat(99));
+    return lines.map((l, i) => i ? l.slice(Math.min(indent, l.match(/^\s*/)[0].length)) : l).join("\n").replace(/^\s+$/gm, "").trim();
+  };
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  let comps = 0;
+  document.querySelectorAll(".spec").forEach(spec => {
+    const parts = [...new Set([...spec.querySelectorAll("[data-c]")].map(clean))];
+    if (!parts.length) return;
+    comps++;
+    const d = document.createElement("details");
+    d.innerHTML = `<summary>HTML</summary><div class="code-box"><pre><code>${esc(parts.join("\n\n"))}</code></pre><button class="btn copy" type="button">Copy</button></div>`;
+    d.querySelector(".copy").addEventListener("click", async e => {
+      try { await navigator.clipboard.writeText(parts.join("\n\n")); e.target.textContent = "Copied"; }
+      catch { e.target.textContent = "Select and copy"; }
+      setTimeout(() => e.target.textContent = "Copy", 1600);
+    });
+    spec.appendChild(d);
+  });
+  $("stat-comps").textContent = comps;
+
+  /* working controls */
+  document.querySelectorAll(".segmented").forEach(g => g.querySelectorAll("button").forEach(b => b.addEventListener("click", () =>
+    g.querySelectorAll("button").forEach(o => o.setAttribute("aria-pressed", String(o === b))))));
+  document.querySelectorAll(".stage .toast button").forEach(b => b.addEventListener("click", () => {
+    const t = b.closest(".toast"); t.style.opacity = "0.3"; setTimeout(() => t.style.opacity = "", 900);
+  }));
+  document.querySelectorAll('.nav a[href="#navigation"]').forEach(a => a.addEventListener("click", e => e.preventDefault()));
+
+  /* section index highlights the section in view */
+  const links = [...document.querySelectorAll("#g-index a")];
+  const io = new IntersectionObserver(entries => entries.forEach(en => {
+    if (!en.isIntersecting) return;
+    links.forEach(l => l.classList.toggle("on", l.getAttribute("href") === "#" + en.target.id));
+  }), { rootMargin: "-30% 0px -65% 0px" });
+  document.querySelectorAll(".g-section").forEach(s => io.observe(s));
+})();
+</script>
+
+</body>
+</html>
