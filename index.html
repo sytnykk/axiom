@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0a0a0a">
 </head>
 <body>
-<title>Axiom Analytics</title>
+<title>Axiom</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -677,6 +677,8 @@ td.person-cell { padding-block: 6px; }
     document.querySelectorAll(".view").forEach(v => v.hidden = v.dataset.view !== name);
     nav.querySelectorAll("a").forEach(a => { if (a.dataset.view === name) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     setOpen(false); setFilter(false);
+    const link = nav.querySelector(`a[data-view="${name}"]`);
+    document.title = `${link ? link.textContent.trim() : "Dashboard"} · Axiom`;
     drawVisible();
     if (focus) { const h = document.querySelector(`.view[data-view="${name}"] h1`); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } scrollTo(0, 0); }
   }
