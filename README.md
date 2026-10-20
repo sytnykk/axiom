@@ -15,7 +15,7 @@ A dark SaaS dashboard UI kit, designed in Figma and built as a working prototype
 
 The design lives in Figma, on a fully tokenized Variables system. The screens were read into code with Claude through the Figma MCP server, so every colour, spacing and radius value in the CSS maps to a named Figma variable (for example `--bg-300` is `bg/300`).
 
-Reading the file this way also surfaced gaps in it — raw hex values where a variable should be, a table header that differs between screens, a mismatched row count. Those are listed under *Build notes* on the components page, along with how the code resolves them.
+Reading the file this way also surfaced gaps in it — raw hex values where a variable should be, a table header that differs between screens, a mismatched row count. Those were then fixed in the Figma file itself, also through MCP, so design and code match; the components page lists them under *Build notes*.
 
 Both pages are single self-contained files with no build step. Icons are from [Lucide](https://lucide.dev); the typeface is [Geist](https://vercel.com/font).
 
